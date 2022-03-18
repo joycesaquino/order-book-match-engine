@@ -67,8 +67,11 @@ func (r operationRepository) FindAll(ctx context.Context, keys event.DynamoEvent
 
 func NewOperationRepository(client DynamoDBAPI, config *Config) OperationRepository {
 
-	if err := env.Parse(config); err != nil {
-		log.Fatalf("[ERROR] Missing configuration for pricerepository: %s", err)
+	if config == nil {
+		config = new(Config)
+		if err := env.Parse(config); err != nil {
+			log.Fatalf("[ERROR] Missing configuration for operation repository: %s", err)
+		}
 	}
 
 	return &operationRepository{

@@ -11,7 +11,9 @@ func main() {
 }
 
 func Handler(ctx context.Context, dynamoEvent event.DynamoEvent) error {
+	for _, _ = range dynamoEvent.Records {
 
+	}
 	return nil
 
 }
