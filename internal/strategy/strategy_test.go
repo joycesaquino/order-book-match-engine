@@ -1,13 +1,13 @@
 package strategy
 
 import (
+	"context"
 	"github.com/stretchr/testify/mock"
 	"order-book-match-engine/internal/event"
 	"testing"
 )
 
-const QUEUE = "https://error.sa-east-1.amazonaws.com/562821017172/offer-update-hml-error-flow"
-const tableName = "offer-update-hml-prices"
+const tableName = "order-book-table-name"
 
 type StrategyMock struct {
 	mock     mock.Mock
@@ -20,26 +20,26 @@ func (m *StrategyMock) Accept(i *Input) bool {
 	return m.strategy.Accept(i)
 }
 
-func (m *StrategyMock) Apply(i *Input) {
+func (m *StrategyMock) Apply(ctx context.Context, i *Input) {
 	m.mock.Called(i)
 }
 
 func TestValidation_Strategy(t *testing.T) {
 
-	var buy, sell, updateStatus, deleteOperation StrategyMock
+	var buyStrategy, sell, updateStatus, deleteOperation StrategyMock
 	var strategies = map[string]*StrategyMock{}
 
-	strategies["buy"] = &buy
+	strategies["buy"] = &buyStrategy
 	strategies["sell"] = &sell
 	strategies["updateStatus"] = &updateStatus
 	strategies["deleteOperation"] = &deleteOperation
 
 	mockObject := &Validation{
 		Strategies: []Strategy{
-			&buy,
-			&sell,
-			&updateStatus,
-			&deleteOperation,
+			&buyStrategy,
+			//&sell,
+			//&updateStatus,
+			//&deleteOperation,
 		},
 	}
 
@@ -48,44 +48,18 @@ func TestValidation_Strategy(t *testing.T) {
 		strategies map[string]bool
 		input      *Input
 	}{
-		{name: "Success strategy", strategies: map[string]bool{"updateOffer": true},
+		{name: "Buy strategy", strategies: map[string]bool{"buyStrategy": true},
 			input: &Input{
 				NewImageInput: &event.DynamoEventMessage{},
 				OldImageInput: nil,
 				TableName:     tableName,
-				StatusChange:  true,
-			},
-		},
-		{name: "ChangedSku Strategy", strategies: map[string]bool{"skuChange": true}, input: &Input{
-			NewImageInput: &event.DynamoEventMessage{},
-			OldImageInput: &event.DynamoEventMessage{},
-			TableName:     tableName,
-			StatusChange:  true,
-		},
-		},
-		{
-			name: "Disable offer Strategy", strategies: map[string]bool{"disableOffer": true},
-			input: &Input{
-				NewImageInput: &event.DynamoEventMessage{},
-				OldImageInput: nil,
-				TableName:     tableName,
-				StatusChange:  true,
-			},
-		},
-		{name: "Delete offer Strategy", strategies: map[string]bool{"deleteOffer": true},
-			input: &Input{
-				EventName:     "REMOVE",
-				NewImageInput: nil,
-				OldImageInput: &event.DynamoEventMessage{},
-				TableName:     tableName,
-				StatusChange:  true,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			//buy = StrategyMock{mock: mock.Mock{}, strategy: &SuccessUpdate{}, name: "buy"}
+			buyStrategy = StrategyMock{mock: mock.Mock{}, strategy: &Buy{}, name: "buy"}
 			//sell = StrategyMock{mock: mock.Mock{}, strategy: &SkuHasChanged{}, name: "sell"}
 			//updateStatus = StrategyMock{mock: mock.Mock{}, strategy: &DisableOffer{}, name: "updateStatus"}
 			//deleteOperation = StrategyMock{mock: mock.Mock{}, strategy: &DeleteOffer{}, name: "deleteOperation"}
@@ -96,7 +70,7 @@ func TestValidation_Strategy(t *testing.T) {
 			}
 
 			//call method
-			mockObject.Strategy(tt.input)
+			mockObject.Strategy(context.Background(), tt.input)
 
 			// verification
 			for s, mockObj := range strategies {

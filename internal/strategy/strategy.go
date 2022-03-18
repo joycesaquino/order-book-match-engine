@@ -1,11 +1,13 @@
 package strategy
 
 import (
+	"context"
 	"fmt"
 	"order-book-match-engine/internal/event"
 )
 
 type Input struct {
+	Key           event.DynamoEventMessageKey
 	NewImageInput *event.DynamoEventMessage
 	OldImageInput *event.DynamoEventMessage
 	EventName     string
@@ -18,17 +20,17 @@ func (i Input) toString() string {
 
 type Strategy interface {
 	Accept(input *Input) bool
-	Apply(input *Input)
+	Apply(ctx context.Context, input *Input)
 }
 
 type Validation struct {
 	Strategies []Strategy
 }
 
-func (validation *Validation) Strategy(input *Input) {
+func (validation *Validation) Strategy(ctx context.Context, input *Input) {
 	for _, strategy := range validation.Strategies {
 		if strategy.Accept(input) {
-			strategy.Apply(input)
+			strategy.Apply(ctx, input)
 		}
 	}
 }

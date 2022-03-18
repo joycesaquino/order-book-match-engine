@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"order-book-match-engine/internal/event"
@@ -18,7 +19,7 @@ func NewMatchEngine(sess *session.Session) *Match {
 	return &Match{Order: orderBook.NewOperationRepository(db, nil)}
 }
 
-func (m Match) Match(record event.DynamoRecord) {
+func (m Match) Match(ctx context.Context, record event.DynamoRecord) {
 	newImage, oldImage, err := record.ConverterEventRaw()
 	if err != nil {
 		return
@@ -35,5 +36,5 @@ func (m Match) Match(record event.DynamoRecord) {
 		EventName:     record.EventName,
 		TableName:     tableName,
 	}
-	m.validation.Strategy(input)
+	m.validation.Strategy(ctx, input)
 }

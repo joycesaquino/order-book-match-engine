@@ -23,7 +23,7 @@ type (
 		Hash      string  `dynamodbav:"hash"`
 		Value     float64 `dynamodbav:"value"`
 		Quantity  int     `dynamodbav:"quantity"`
-		Status    int     `dynamodbav:"status"`
+		Status    string  `dynamodbav:"status"`
 		Type      string  `dynamodbav:"type"`
 		UserId    int     `dynamodbav:"userId"`
 		Audit     Audit   `dynamodbav:"audit"`
@@ -74,7 +74,7 @@ func (dr DynamoRecord) GetTableName() (string, error) {
 	return tableName, nil
 }
 
-func (dem *DynamoEventMessage) key() map[string]string {
+func (dem *DynamoEventMessage) GetKey() map[string]string {
 	key := map[string]string{
 		"id":   dem.Id,
 		"type": dem.Type,
