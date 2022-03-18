@@ -13,8 +13,8 @@ import (
 
 type (
 	DynamoEventMessageKey struct {
-		Hash  string `dynamodbav:"id"`
-		Range string `dynamodbav:"type"`
+		Hash  string `dynamodbav:"type"`
+		Range string `dynamodbav:"id"`
 	}
 
 	DynamoEventMessage struct {
@@ -25,13 +25,14 @@ type (
 		Quantity  int     `dynamodbav:"quantity"`
 		Status    int     `dynamodbav:"status"`
 		Type      string  `dynamodbav:"type"`
+		UserId    int     `dynamodbav:"userId"`
 		Audit     Audit   `dynamodbav:"audit"`
 	}
 
 	Audit struct {
 		CreatedAt time.Time `dynamodbav:":createdAt,unixtime"`
 		UpdatedAt time.Time `dynamodbav:":updatedAt,unixtime"`
-		ApdatedBy string    `dynamodbav:"updatedBy"`
+		UpdatedBy string    `dynamodbav:"updatedBy"`
 	}
 
 	DynamoEvent struct {
