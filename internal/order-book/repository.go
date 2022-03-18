@@ -7,7 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/caarlos0/env"
 	"github.com/pkg/errors"
+	"log"
 	"order-book-match-engine/internal/event"
 )
 
@@ -23,20 +25,17 @@ type (
 		TableName string `env:"ORDER_BOOK_TABLE_NAME,required"`
 	}
 
-	OrderRepository interface {
-		FindAll(ctx context.Context, keys event.DynamoEventMessageKey) ([]event.DynamoEventMessage, error)
+	OperationRepository interface {
+		FindAll(ctx context.Context, keys event.DynamoEventMessageKey, status string) ([]*event.DynamoEventMessage, error)
 	}
 
-	oderRepository struct {
+	operationRepository struct {
 		cfg *Config
 		db  DynamoDBAPI
 	}
 )
 
-type Match struct {
-}
-
-func (r oderRepository) FindAll(ctx context.Context, keys event.DynamoEventMessageKey, status string) ([]* event.DynamoEventMessage, error) {
+func (r operationRepository) FindAll(ctx context.Context, keys event.DynamoEventMessageKey, status string) ([]*event.DynamoEventMessage, error) {
 
 	query := &dynamodb.QueryInput{
 		KeyConditions: map[string]*dynamodb.Condition{
@@ -64,4 +63,16 @@ func (r oderRepository) FindAll(ctx context.Context, keys event.DynamoEventMessa
 	}
 
 	return operations, nil
+}
+
+func NewOperationRepository(client DynamoDBAPI, config *Config) OperationRepository {
+
+	if err := env.Parse(config); err != nil {
+		log.Fatalf("[ERROR] Missing configuration for pricerepository: %s", err)
+	}
+
+	return &operationRepository{
+		cfg: config,
+		db:  client,
+	}
 }
