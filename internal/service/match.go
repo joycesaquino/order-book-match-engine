@@ -19,7 +19,7 @@ func NewMatchEngine(sess *session.Session) *Match {
 	return &Match{Order: orderBook.NewOperationRepository(db, nil)}
 }
 
-func (m Match) Match(ctx context.Context, record event.DynamoRecord) {
+func (m Match) Match(ctx context.Context, record *event.DynamoRecord) {
 	newImage, oldImage, err := record.ConverterEventRaw()
 	if err != nil {
 		return
