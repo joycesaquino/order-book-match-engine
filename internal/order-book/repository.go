@@ -17,9 +17,7 @@ import (
 
 type (
 	DynamoDBAPI interface {
-		UpdateItemWithContext(aws.Context, *dynamodb.UpdateItemInput, ...request.Option) (*dynamodb.PutItemOutput, error)
-		BatchGetItemWithContext(aws.Context, *dynamodb.BatchGetItemInput, ...request.Option) (*dynamodb.BatchGetItemOutput, error)
-		BatchWriteItemWithContext(aws.Context, *dynamodb.BatchWriteItemInput, ...request.Option) (*dynamodb.BatchWriteItemOutput, error)
+		UpdateItemWithContext(aws.Context, *dynamodb.UpdateItemInput, ...request.Option) (*dynamodb.UpdateItemOutput, error)
 		QueryWithContext(aws.Context, *dynamodb.QueryInput, ...request.Option) (*dynamodb.QueryOutput, error)
 	}
 
@@ -29,6 +27,7 @@ type (
 
 	OperationRepository interface {
 		FindAll(ctx context.Context, keys types.DynamoEventMessageKey, status string) (types.Messages, error)
+		Update(ctx context.Context, keys types.DynamoEventMessageKey, status string) error
 	}
 
 	operationRepository struct {
