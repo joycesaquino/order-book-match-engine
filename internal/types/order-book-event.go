@@ -17,6 +17,8 @@ const (
 	Buy         = "BUY"
 	Sale        = "SALE"
 	MatchEngine = "MATCH_ENGINE"
+	Available   = "AVAILABLE"
+	Unavailable = "UNAVAILABLE"
 )
 
 type (
@@ -89,12 +91,12 @@ func (keys DynamoEventMessageKey) GetKey() map[string]*dynamodb.AttributeValue {
 	}
 }
 
-func (eventMessage DynamoEventMessage) GetKey() map[string]string {
-	key := map[string]string{
-		"id":   eventMessage.Id,
-		"type": eventMessage.Type,
+func (eventMessage DynamoEventMessage) GetKey() DynamoEventMessageKey {
+
+	return DynamoEventMessageKey{
+		eventMessage.Type,
+		eventMessage.Id,
 	}
-	return key
 }
 
 type Messages []*DynamoEventMessage

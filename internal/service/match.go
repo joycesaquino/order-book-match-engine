@@ -3,20 +3,16 @@ package service
 import (
 	"context"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	orderBook "order-book-match-engine/internal/order-book"
 	"order-book-match-engine/internal/strategy"
 	"order-book-match-engine/internal/types"
 )
 
 type Match struct {
 	validation *strategy.Validation
-	Order      orderBook.OperationRepository
 }
 
 func NewMatchEngine(sess *session.Session) *Match {
-	db := dynamodb.New(sess)
-	return &Match{Order: orderBook.NewOperationRepository(db, nil)}
+	return &Match{validation: strategy.New(sess)}
 }
 
 func (m Match) Match(ctx context.Context, record *types.DynamoRecord) {

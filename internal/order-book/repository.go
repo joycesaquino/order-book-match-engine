@@ -46,9 +46,10 @@ func (r operationRepository) Update(ctx context.Context, keys types.DynamoEventM
 		Key:                 keys.GetKey(),
 		ReturnValues:        aws.String(dynamodb.ReturnValueNone),
 		UpdateExpression:    aws.String("SET status = :status,audit.updatedAt = :now, audit.updatedBy = :updatedBy"),
-		ConditionExpression: aws.String("status = :AVAILABLE"),
+		ConditionExpression: aws.String("status = :available"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":status":    {S: aws.String(status)},
+			":available": {S: aws.String(status)},
 			":updatedBy": {S: aws.String(types.MatchEngine)},
 			":now":       now,
 		},

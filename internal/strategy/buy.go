@@ -25,6 +25,14 @@ func (strategy *Buy) Apply(ctx context.Context, input *Input) {
 
 	for _, sale := range eventMessages.SortByCreatedAt() {
 		if buy.Quantity == sale.Quantity {
+			if err := strategy.repository.Update(ctx, sale.GetKey(), types.Unavailable); err != nil {
+				return
+			}
+
+			if err := strategy.repository.Update(ctx, buy.GetKey(), types.Unavailable); err != nil {
+				return
+			}
+
 			err := strategy.queue.Send(ctx, BuildOrders(buy, sale))
 			if err != nil {
 				return

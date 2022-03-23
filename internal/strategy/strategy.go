@@ -3,7 +3,11 @@ package strategy
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	orderBook "order-book-match-engine/internal/order-book"
 	"order-book-match-engine/internal/types"
+	walletIntegration "order-book-match-engine/internal/wallet-integration"
 )
 
 type Input struct {
@@ -35,9 +39,19 @@ func (validation *Validation) Strategy(ctx context.Context, input *Input) {
 	}
 }
 
-func New() *Validation {
-
+func New(sess *session.Session) *Validation {
+	db := dynamodb.New(sess)
+	repository := orderBook.NewOperationRepository(db, nil)
 	return &Validation{
-		Strategies: []Strategy{},
+		Strategies: []Strategy{
+			&Buy{
+				repository: repository,
+				queue:      walletIntegration.NewQueue(sess),
+			},
+			&Sale{
+				repository: repository,
+				queue:      walletIntegration.NewQueue(sess),
+			},
+		},
 	}
 }

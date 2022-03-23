@@ -35,16 +35,12 @@ func (queue *Queue) Send(ctx context.Context, event interface{}) error {
 	return e
 }
 
-func NewQueue() *Queue {
+func NewQueue(sess *session.Session) *Queue {
 	var config *Config
 	err := env.Parse(&config)
 	if err != nil {
 		log.Fatalf("[ERROR] - Erro on configure Wallet Integration Queue client: %s", err)
 	}
-
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(config.Region),
-	})
 
 	return &Queue{
 		awsSqs: sqs.New(sess),
