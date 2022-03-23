@@ -3,7 +3,7 @@ package strategy
 import (
 	"context"
 	"github.com/stretchr/testify/mock"
-	"order-book-match-engine/internal/event"
+	"order-book-match-engine/internal/types"
 	"testing"
 )
 
@@ -50,9 +50,9 @@ func TestValidation_Strategy(t *testing.T) {
 	}{
 		{name: "Buy strategy", strategies: map[string]bool{"buyStrategy": true},
 			input: &Input{
-				NewImageInput: &event.DynamoEventMessage{},
-				OldImageInput: nil,
-				TableName:     tableName,
+				NewImage:  &types.DynamoEventMessage{},
+				OldImage:  nil,
+				TableName: tableName,
 			},
 		},
 	}

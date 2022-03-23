@@ -3,15 +3,15 @@ package strategy
 import (
 	"context"
 	"fmt"
-	"order-book-match-engine/internal/event"
+	"order-book-match-engine/internal/types"
 )
 
 type Input struct {
-	Key           event.DynamoEventMessageKey
-	NewImageInput *event.DynamoEventMessage
-	OldImageInput *event.DynamoEventMessage
-	EventName     string
-	TableName     string
+	Key       types.DynamoEventMessageKey
+	NewImage  *types.DynamoEventMessage
+	OldImage  *types.DynamoEventMessage
+	EventName string
+	TableName string
 }
 
 func (i Input) toString() string {

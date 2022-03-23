@@ -10,7 +10,7 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/pkg/errors"
 	"log"
-	"order-book-match-engine/internal/event"
+	"order-book-match-engine/internal/types"
 )
 
 type (
@@ -26,7 +26,7 @@ type (
 	}
 
 	OperationRepository interface {
-		FindAll(ctx context.Context, keys event.DynamoEventMessageKey, status string) ([]*event.DynamoEventMessage, error)
+		FindAll(ctx context.Context, keys types.DynamoEventMessageKey, status string) (types.Messages, error)
 	}
 
 	operationRepository struct {
@@ -35,7 +35,7 @@ type (
 	}
 )
 
-func (r operationRepository) FindAll(ctx context.Context, keys event.DynamoEventMessageKey, status string) ([]*event.DynamoEventMessage, error) {
+func (r operationRepository) FindAll(ctx context.Context, keys types.DynamoEventMessageKey, status string) (types.Messages, error) {
 
 	query := &dynamodb.QueryInput{
 		KeyConditions: map[string]*dynamodb.Condition{
@@ -56,7 +56,7 @@ func (r operationRepository) FindAll(ctx context.Context, keys event.DynamoEvent
 		return nil, errors.Wrapf(err, "Get Key on Table(%s) By Id(%s) And Status(%s)", r.cfg.TableName, keys.Hash, status)
 	}
 
-	var operations []*event.DynamoEventMessage
+	var operations []*types.DynamoEventMessage
 	err = dynamodbattribute.UnmarshalListOfMaps(output.Items, &operations)
 	if err != nil {
 		fmt.Printf("[ERROR] - Error when unmarshal operations")

@@ -1,4 +1,4 @@
-package event
+package types
 
 import (
 	"fmt"
@@ -7,8 +7,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"log"
+	"sort"
 	"strings"
 	"time"
+)
+
+const (
+	Buy  = "BUY"
+	Sale = "SALE"
 )
 
 type (
@@ -53,12 +59,12 @@ type (
 	}
 )
 
-func (dem DynamoEventMessage) ToString() string {
-	return fmt.Sprintf("%+v\n", dem)
+func (eventMessage DynamoEventMessage) ToString() string {
+	return fmt.Sprintf("%+v\n", eventMessage)
 }
 
-func (dr DynamoRecord) GetTableName() (string, error) {
-	sourceArn, err := arn.Parse(dr.EventSourceArn)
+func (dynamoRecord DynamoRecord) GetTableName() (string, error) {
+	sourceArn, err := arn.Parse(dynamoRecord.EventSourceArn)
 	if err != nil {
 		return "", err
 	}
@@ -74,26 +80,36 @@ func (dr DynamoRecord) GetTableName() (string, error) {
 	return tableName, nil
 }
 
-func (dem *DynamoEventMessage) GetKey() map[string]string {
+func (eventMessage *DynamoEventMessage) GetKey() map[string]string {
 	key := map[string]string{
-		"id":   dem.Id,
-		"type": dem.Type,
+		"id":   eventMessage.Id,
+		"type": eventMessage.Type,
 	}
 	return key
 }
 
-func (dr DynamoRecord) ConverterEventRaw() (new *DynamoEventMessage, old *DynamoEventMessage, err error) {
+type Messages []*DynamoEventMessage
 
-	if dr.Change.OldImage != nil {
-		err = dynamodbattribute.UnmarshalMap(dr.Change.OldImage, &old)
+func (messages Messages) SortByCreatedAt() []*DynamoEventMessage {
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].Audit.CreatedAt.Before(messages[j].Audit.CreatedAt)
+	})
+
+	return messages
+}
+
+func (dynamoRecord DynamoRecord) ConverterEventRaw() (new *DynamoEventMessage, old *DynamoEventMessage, err error) {
+
+	if dynamoRecord.Change.OldImage != nil {
+		err = dynamodbattribute.UnmarshalMap(dynamoRecord.Change.OldImage, &old)
 		if err != nil {
 			log.Printf("Error on convert message %s", err)
 			return
 		}
 	}
 
-	if dr.Change.NewImage != nil {
-		err = dynamodbattribute.UnmarshalMap(dr.Change.NewImage, &new)
+	if dynamoRecord.Change.NewImage != nil {
+		err = dynamodbattribute.UnmarshalMap(dynamoRecord.Change.NewImage, &new)
 		if err != nil {
 			log.Printf("Error on convert message %s", err)
 			return
@@ -102,8 +118,8 @@ func (dr DynamoRecord) ConverterEventRaw() (new *DynamoEventMessage, old *Dynamo
 	return
 }
 
-func (dr DynamoRecord) Key() *DynamoEventMessageKey {
+func (dynamoRecord DynamoRecord) Key() *DynamoEventMessageKey {
 	var key DynamoEventMessageKey
-	_ = dynamodbattribute.UnmarshalMap(dr.Change.Keys, &key)
+	_ = dynamodbattribute.UnmarshalMap(dynamoRecord.Change.Keys, &key)
 	return &key
 }
