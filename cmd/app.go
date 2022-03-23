@@ -12,6 +12,11 @@ func main() {
 	lambda.Start(Handler)
 }
 
+// Handler TODO Match Engine for sale
+// Handler TODO Add TTL em casos de Match para deleção
+// Handler TODO Cloud formation
+// Handler TODO Local Stack
+
 func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 	sess, err := session.NewSession()
 	if err != nil {

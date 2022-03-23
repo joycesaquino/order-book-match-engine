@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -11,11 +12,12 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"order-book-match-engine/internal/types"
+	"time"
 )
 
 type (
 	DynamoDBAPI interface {
-		PutItemWithContext(aws.Context, *dynamodb.PutItemInput, ...request.Option) (*dynamodb.PutItemOutput, error)
+		UpdateItemWithContext(aws.Context, *dynamodb.UpdateItemInput, ...request.Option) (*dynamodb.PutItemOutput, error)
 		BatchGetItemWithContext(aws.Context, *dynamodb.BatchGetItemInput, ...request.Option) (*dynamodb.BatchGetItemOutput, error)
 		BatchWriteItemWithContext(aws.Context, *dynamodb.BatchWriteItemInput, ...request.Option) (*dynamodb.BatchWriteItemOutput, error)
 		QueryWithContext(aws.Context, *dynamodb.QueryInput, ...request.Option) (*dynamodb.QueryOutput, error)
@@ -34,6 +36,35 @@ type (
 		db  DynamoDBAPI
 	}
 )
+
+func (r operationRepository) Update(ctx context.Context, keys types.DynamoEventMessageKey, status string) error {
+	now, err := dynamodbattribute.Marshal(time.Now())
+	if err != nil {
+		return errors.Wrap(err, "Marshal TimeNow to AttributeValue")
+	}
+
+	input := &dynamodb.UpdateItemInput{
+		Key:                 keys.GetKey(),
+		ReturnValues:        aws.String(dynamodb.ReturnValueNone),
+		UpdateExpression:    aws.String("SET status = :status,audit.updatedAt = :now, audit.updatedBy = :updatedBy"),
+		ConditionExpression: aws.String("status = :AVAILABLE"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":status":    {S: aws.String(status)},
+			":updatedBy": {S: aws.String(types.MatchEngine)},
+			":now":       now,
+		},
+	}
+
+	_, err = r.db.UpdateItemWithContext(ctx, input)
+	if err != nil {
+		if err, ok := err.(awserr.Error); ok && err.Code() == dynamodb.ErrCodeConditionalCheckFailedException {
+			log.Printf("[ConditionalCheck] - error : %s ", err)
+			return nil
+		}
+		return errors.Wrapf(err, "Update Error")
+	}
+	return nil
+}
 
 func (r operationRepository) FindAll(ctx context.Context, keys types.DynamoEventMessageKey, status string) (types.Messages, error) {
 

@@ -22,9 +22,8 @@ func (strategy *Buy) Apply(ctx context.Context, input *Input) {
 	if err != nil {
 		return
 	}
-	eventMessages.SortByCreatedAt()
 
-	for _, sale := range eventMessages {
+	for _, sale := range eventMessages.SortByCreatedAt() {
 		if buy.Quantity == sale.Quantity {
 			err := strategy.queue.Send(ctx, BuildOrders(buy, sale))
 			if err != nil {

@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -13,8 +14,9 @@ import (
 )
 
 const (
-	Buy  = "BUY"
-	Sale = "SALE"
+	Buy         = "BUY"
+	Sale        = "SALE"
+	MatchEngine = "MATCH_ENGINE"
 )
 
 type (
@@ -80,7 +82,14 @@ func (dynamoRecord DynamoRecord) GetTableName() (string, error) {
 	return tableName, nil
 }
 
-func (eventMessage *DynamoEventMessage) GetKey() map[string]string {
+func (keys DynamoEventMessageKey) GetKey() map[string]*dynamodb.AttributeValue {
+	return map[string]*dynamodb.AttributeValue{
+		"id":   {S: aws.String(keys.Range)},
+		"type": {S: aws.String(keys.Hash)},
+	}
+}
+
+func (eventMessage DynamoEventMessage) GetKey() map[string]string {
 	key := map[string]string{
 		"id":   eventMessage.Id,
 		"type": eventMessage.Type,
