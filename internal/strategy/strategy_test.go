@@ -26,13 +26,11 @@ func (m *StrategyMock) Apply(ctx context.Context, i *Input) {
 
 func TestValidation_Strategy(t *testing.T) {
 
-	var buyStrategy, sale, updateStatus, deleteOperation StrategyMock
+	var buyStrategy, sale StrategyMock
 	var strategies = map[string]*StrategyMock{}
 
 	strategies["buy"] = &buyStrategy
 	strategies["sale"] = &sale
-	strategies["updateStatus"] = &updateStatus
-	strategies["deleteOperation"] = &deleteOperation
 
 	mockObject := &Validation{
 		Strategies: []Strategy{

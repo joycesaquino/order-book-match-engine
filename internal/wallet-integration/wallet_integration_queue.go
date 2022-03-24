@@ -36,6 +36,7 @@ func (queue *Queue) Send(ctx context.Context, event interface{}) error {
 }
 
 func NewQueue(sess *session.Session) *Queue {
+
 	var config *Config
 	err := env.Parse(&config)
 	if err != nil {
