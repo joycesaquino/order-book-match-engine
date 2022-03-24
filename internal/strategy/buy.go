@@ -47,9 +47,9 @@ func Match(buy *types.DynamoEventMessage, sales types.Messages) map[string][]*ty
 	matchOrders := make(map[string][]*types.DynamoEventMessage)
 	for _, sale := range sales.SortByCreatedAt() {
 
-		if buy.Quantity > sale.Quantity {
+		if buy.Quantity >= sale.Quantity {
 
-			if mod-sale.Quantity < 0 {
+			if (mod - sale.Quantity) < 0 {
 				mod = mod + sale.Quantity
 				continue
 			}
@@ -57,7 +57,7 @@ func Match(buy *types.DynamoEventMessage, sales types.Messages) map[string][]*ty
 			mod = mod - sale.Quantity
 			if mod == 0 {
 				matchOrders[buy.Id] = append(matchOrders[buy.Id], sale)
-				break
+				return matchOrders
 			}
 
 			matchOrders[buy.Id] = append(matchOrders[buy.Id], sale)
