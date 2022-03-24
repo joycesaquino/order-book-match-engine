@@ -44,6 +44,18 @@ func TestMatch(t *testing.T) {
 		}, want: map[string][]*types.DynamoEventMessage{
 			"001": {{Quantity: 10}},
 		}},
+		{name: "Should NOT Match orders ", args: args{
+			buy: &types.DynamoEventMessage{
+				Id:       "001",
+				Quantity: 10,
+			},
+			sales: []*types.DynamoEventMessage{
+				{Quantity: 6},
+				{Quantity: 3},
+			},
+		}, want: map[string][]*types.DynamoEventMessage{
+			"001": {{Quantity: 10}},
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -22,23 +22,23 @@ func (strategy *Buy) Apply(ctx context.Context, input *Input) {
 	if err != nil {
 		return
 	}
-	_ = Match(buy, eventMessages)
+	matchOrders := Match(buy, eventMessages)
 
-}
-
-func (strategy *Buy) FullMatch(ctx context.Context, buy *types.DynamoEventMessage, sale *types.DynamoEventMessage) {
-	if err := strategy.repository.Update(ctx, sale.GetKey(), types.Unavailable); err != nil {
-		return
+	var value int
+	for _, match := range matchOrders[buy.Id] {
+		value = value + match.Quantity
 	}
 
-	if err := strategy.repository.Update(ctx, buy.GetKey(), types.Unavailable); err != nil {
-		return
+	if buy.Quantity == value {
+		// Deu Match, update status de compra e venda
+		// Update ok ? Manda pra fila
+		// Update not ok com conditionalCheckFailed? Retry ou Update Date para estimular novamente o registro
 	}
 
-	err := strategy.queue.Send(ctx, BuildOrders(buy, sale))
-	if err != nil {
-		return
+	if buy.Quantity != value {
+		// Se não, update status IN_TRADE compra.
 	}
+
 }
 
 func Match(buy *types.DynamoEventMessage, sales types.Messages) map[string][]*types.DynamoEventMessage {
