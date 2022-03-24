@@ -28,7 +28,7 @@ func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 
 	matchEngine := service.NewMatchEngine(sess)
 	for _, record := range dynamoEvent.Records {
-		go matchEngine.Match(ctx, record)
+		matchEngine.Match(ctx, record)
 	}
 	return nil
 

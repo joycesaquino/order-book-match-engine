@@ -22,40 +22,68 @@ func (strategy *Buy) Apply(ctx context.Context, input *Input) {
 	if err != nil {
 		return
 	}
+	_ = Match(buy, eventMessages)
 
-	for _, sale := range eventMessages.SortByCreatedAt() {
-		if buy.Quantity == sale.Quantity {
-			if err := strategy.repository.Update(ctx, sale.GetKey(), types.Unavailable); err != nil {
-				return
-			}
+}
 
-			if err := strategy.repository.Update(ctx, buy.GetKey(), types.Unavailable); err != nil {
-				return
-			}
+func (strategy *Buy) FullMatch(ctx context.Context, buy *types.DynamoEventMessage, sale *types.DynamoEventMessage) {
+	if err := strategy.repository.Update(ctx, sale.GetKey(), types.Unavailable); err != nil {
+		return
+	}
 
-			err := strategy.queue.Send(ctx, BuildOrders(buy, sale))
-			if err != nil {
-				return
-			}
-		}
+	if err := strategy.repository.Update(ctx, buy.GetKey(), types.Unavailable); err != nil {
+		return
+	}
+
+	err := strategy.queue.Send(ctx, BuildOrders(buy, sale))
+	if err != nil {
+		return
 	}
 }
 
-func BuildOrders(buyMessage *types.DynamoEventMessage, saleMessage *types.DynamoEventMessage) (orders []*types.Order) {
+func Match(buy *types.DynamoEventMessage, sales types.Messages) map[string][]*types.DynamoEventMessage {
+
+	var mod = buy.Quantity
+	matchOrders := make(map[string][]*types.DynamoEventMessage)
+	for _, sale := range sales.SortByCreatedAt() {
+
+		if buy.Quantity > sale.Quantity {
+
+			if mod-sale.Quantity < 0 {
+				mod = mod + sale.Quantity
+				continue
+			}
+
+			mod = mod - sale.Quantity
+			if mod == 0 {
+				matchOrders[buy.Id] = append(matchOrders[buy.Id], sale)
+				break
+			}
+
+			matchOrders[buy.Id] = append(matchOrders[buy.Id], sale)
+			continue
+		}
+
+	}
+
+	return matchOrders
+}
+
+func BuildOrders(buy *types.DynamoEventMessage, sale *types.DynamoEventMessage) (orders []*types.Order) {
 
 	orders = append(orders,
 		&types.Order{
-			Value:         buyMessage.Value,
-			Quantity:      buyMessage.Quantity,
+			Value:         buy.Value,
+			Quantity:      buy.Quantity,
 			OperationType: types.Buy,
-			UserId:        buyMessage.UserId,
-			RequestId:     buyMessage.RequestId,
+			UserId:        buy.UserId,
+			RequestId:     buy.RequestId,
 		}, &types.Order{
-			Value:         saleMessage.Value,
-			Quantity:      saleMessage.Quantity,
+			Value:         sale.Value,
+			Quantity:      sale.Quantity,
 			OperationType: types.Sale,
-			UserId:        saleMessage.UserId,
-			RequestId:     saleMessage.RequestId,
+			UserId:        sale.UserId,
+			RequestId:     sale.RequestId,
 		})
 
 	return orders

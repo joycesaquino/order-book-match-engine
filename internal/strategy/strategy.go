@@ -40,6 +40,7 @@ func (validation *Validation) Strategy(ctx context.Context, input *Input) {
 }
 
 func New(sess *session.Session) *Validation {
+
 	db := dynamodb.New(sess)
 	repository := orderBook.NewOperationRepository(db, nil)
 	return &Validation{

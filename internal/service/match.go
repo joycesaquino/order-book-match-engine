@@ -16,6 +16,7 @@ func NewMatchEngine(sess *session.Session) *Match {
 }
 
 func (m Match) Match(ctx context.Context, record *types.DynamoRecord) {
+
 	newImage, oldImage, err := record.ConverterEventRaw()
 	if err != nil {
 		return
@@ -32,5 +33,7 @@ func (m Match) Match(ctx context.Context, record *types.DynamoRecord) {
 		EventName: record.EventName,
 		TableName: tableName,
 	}
+
 	m.validation.Strategy(ctx, input)
+
 }
