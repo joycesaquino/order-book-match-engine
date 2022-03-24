@@ -17,6 +17,7 @@ func main() {
 // Handler TODO Cloud formation
 // Handler TODO Local Stack
 // Handler TODO Considerar estratégias de compra/venda como iguais e criar novas para Match igual e Match Parcial ??
+// Handler TODO Cobertura de testes
 
 func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 

@@ -26,18 +26,18 @@ func (m *StrategyMock) Apply(ctx context.Context, i *Input) {
 
 func TestValidation_Strategy(t *testing.T) {
 
-	var buyStrategy, sell, updateStatus, deleteOperation StrategyMock
+	var buyStrategy, sale, updateStatus, deleteOperation StrategyMock
 	var strategies = map[string]*StrategyMock{}
 
 	strategies["buy"] = &buyStrategy
-	strategies["sell"] = &sell
+	strategies["sale"] = &sale
 	strategies["updateStatus"] = &updateStatus
 	strategies["deleteOperation"] = &deleteOperation
 
 	mockObject := &Validation{
 		Strategies: []Strategy{
 			&buyStrategy,
-			//&sell,
+			&sale,
 			//&updateStatus,
 			//&deleteOperation,
 		},
@@ -60,9 +60,7 @@ func TestValidation_Strategy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			buyStrategy = StrategyMock{mock: mock.Mock{}, strategy: &Buy{}, name: "buy"}
-			//sell = StrategyMock{mock: mock.Mock{}, strategy: &SkuHasChanged{}, name: "sell"}
-			//updateStatus = StrategyMock{mock: mock.Mock{}, strategy: &DisableOffer{}, name: "updateStatus"}
-			//deleteOperation = StrategyMock{mock: mock.Mock{}, strategy: &DeleteOffer{}, name: "deleteOperation"}
+			sale = StrategyMock{mock: mock.Mock{}, strategy: &Sale{}, name: "sale"}
 
 			for _, obj := range strategies {
 				obj.mock.On("Apply", tt.input).Return()
