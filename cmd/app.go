@@ -26,7 +26,15 @@ func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 
 	matchEngine := service.NewMatchEngine(sess)
 	for _, record := range dynamoEvent.Records {
-		matchEngine.Match(ctx, record)
+
+		newImage, _, err := record.ConverterEventRaw()
+		if err != nil {
+			return err
+		}
+
+		if newImage.Status == types.InTrade {
+			matchEngine.Match(ctx, newImage)
+		}
 	}
 	return nil
 

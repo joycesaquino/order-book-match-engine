@@ -1,5 +1,10 @@
 package types
 
+const (
+	credit = "CREDIT"
+	debit  = "DEBIT"
+)
+
 type Order struct {
 	Value         float64 `json:"value"`
 	Quantity      int     `json:"quantity"`

@@ -24,12 +24,7 @@ func NewMatchEngine(sess *session.Session) *Match {
 	}
 }
 
-func (m Match) Match(ctx context.Context, record *types.DynamoRecord) {
-
-	newImage, _, err := record.ConverterEventRaw()
-	if err != nil {
-		return
-	}
+func (m Match) Match(ctx context.Context, newImage *types.DynamoEventMessage) {
 
 	orders, err := m.repository.FindAll(ctx, getOperationType(newImage), newImage.Status)
 	if err != nil {
@@ -55,6 +50,7 @@ func (m Match) Match(ctx context.Context, record *types.DynamoRecord) {
 }
 
 func getOperationType(newImage *types.DynamoEventMessage) string {
+
 	var operationType string
 
 	switch newImage.Type {
@@ -65,6 +61,7 @@ func getOperationType(newImage *types.DynamoEventMessage) string {
 		operationType = types.Sale
 		break
 	}
+
 	return operationType
 }
 
