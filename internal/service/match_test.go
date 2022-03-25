@@ -1,13 +1,12 @@
-package strategy
+package service
 
 import (
-	"context"
 	"order-book-match-engine/internal/types"
 	"reflect"
 	"testing"
 )
 
-func TestMatch(t *testing.T) {
+func Test_match(t *testing.T) {
 	type args struct {
 		buy   *types.DynamoEventMessage
 		sales types.Messages
@@ -61,7 +60,7 @@ func TestMatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, itsAMatch := Match(context.Background(), tt.args.buy, tt.args.sales)
+			got, itsAMatch := match(tt.args.buy, tt.args.sales)
 
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Match() = %v, want %v", got, tt.want)
