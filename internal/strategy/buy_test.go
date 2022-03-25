@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"context"
 	"order-book-match-engine/internal/types"
 	"reflect"
 	"testing"
@@ -12,9 +13,10 @@ func TestMatch(t *testing.T) {
 		sales types.Messages
 	}
 	tests := []struct {
-		name string
-		args args
-		want map[string][]*types.DynamoEventMessage
+		name  string
+		args  args
+		want  map[string][]*types.DynamoEventMessage
+		match bool
 	}{
 		{name: "Should Match orders considering partial match", args: args{
 			buy: &types.DynamoEventMessage{
@@ -29,7 +31,7 @@ func TestMatch(t *testing.T) {
 			},
 		}, want: map[string][]*types.DynamoEventMessage{
 			"001": {{Quantity: 5}, {Quantity: 2}, {Quantity: 3}},
-		}},
+		}, match: true},
 		{name: "Should Match orders considering full match", args: args{
 			buy: &types.DynamoEventMessage{
 				Id:       "001",
@@ -43,8 +45,8 @@ func TestMatch(t *testing.T) {
 			},
 		}, want: map[string][]*types.DynamoEventMessage{
 			"001": {{Quantity: 10}},
-		}},
-		{name: "Should NOT Match orders ", args: args{
+		}, match: true},
+		{name: "Should NOT Match orders", args: args{
 			buy: &types.DynamoEventMessage{
 				Id:       "001",
 				Quantity: 10,
@@ -54,13 +56,19 @@ func TestMatch(t *testing.T) {
 				{Quantity: 3},
 			},
 		}, want: map[string][]*types.DynamoEventMessage{
-			"001": {{Quantity: 10}},
-		}},
+			"001": {{Quantity: 6}, {Quantity: 3}},
+		}, match: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Match(tt.args.buy, tt.args.sales); !reflect.DeepEqual(got, tt.want) {
+			got, itsAMatch := Match(context.Background(), tt.args.buy, tt.args.sales)
+
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Match() = %v, want %v", got, tt.want)
+			}
+
+			if !reflect.DeepEqual(itsAMatch, tt.match) {
+				t.Errorf("Match() = %v, want %v", itsAMatch, tt.match)
 			}
 
 		})

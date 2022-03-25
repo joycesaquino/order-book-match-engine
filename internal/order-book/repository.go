@@ -26,7 +26,7 @@ type (
 	}
 
 	OperationRepository interface {
-		FindAll(ctx context.Context, keys types.DynamoEventMessageKey, status string) (types.Messages, error)
+		FindAll(ctx context.Context, orderType string, status string) (types.Messages, error)
 		Update(ctx context.Context, keys types.DynamoEventMessageKey, status string) error
 	}
 
@@ -43,15 +43,14 @@ func (r operationRepository) Update(ctx context.Context, keys types.DynamoEventM
 	}
 
 	input := &dynamodb.UpdateItemInput{
-		Key:                 keys.GetKey(),
-		ReturnValues:        aws.String(dynamodb.ReturnValueNone),
-		UpdateExpression:    aws.String("SET status = :status,audit.updatedAt = :now, audit.updatedBy = :updatedBy"),
-		ConditionExpression: aws.String("status = :available"),
+		Key:              keys.GetKey(),
+		TableName:        aws.String(r.cfg.TableName),
+		ReturnValues:     aws.String(dynamodb.ReturnValueNone),
+		UpdateExpression: aws.String("SET operationStatus = :updatedStatus , audit.updatedAt = :now, audit.updatedBy = :updatedBy"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":status":    {S: aws.String(status)},
-			":available": {S: aws.String(status)},
-			":updatedBy": {S: aws.String(types.MatchEngine)},
-			":now":       now,
+			":updatedStatus": {S: aws.String(status)},
+			":updatedBy":     {S: aws.String(types.MatchEngine)},
+			":now":           now,
 		},
 	}
 
@@ -66,17 +65,17 @@ func (r operationRepository) Update(ctx context.Context, keys types.DynamoEventM
 	return nil
 }
 
-func (r operationRepository) FindAll(ctx context.Context, keys types.DynamoEventMessageKey, status string) (types.Messages, error) {
+func (r operationRepository) FindAll(ctx context.Context, orderType string, status string) (types.Messages, error) {
 
 	query := &dynamodb.QueryInput{
 		KeyConditions: map[string]*dynamodb.Condition{
 			"type": {
-				AttributeValueList: []*dynamodb.AttributeValue{{S: aws.String(keys.Hash)}},
+				AttributeValueList: []*dynamodb.AttributeValue{{S: aws.String(orderType)}},
 				ComparisonOperator: aws.String(dynamodb.ComparisonOperatorEq),
 			},
 			"id": {
 				AttributeValueList: []*dynamodb.AttributeValue{{S: aws.String(status)}},
-				ComparisonOperator: aws.String(dynamodb.ComparisonOperatorContains),
+				ComparisonOperator: aws.String(dynamodb.ComparisonOperatorBeginsWith),
 			},
 		},
 		TableName: aws.String(r.cfg.TableName),
@@ -84,7 +83,7 @@ func (r operationRepository) FindAll(ctx context.Context, keys types.DynamoEvent
 
 	output, err := r.db.QueryWithContext(ctx, query)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Get Key on Table(%s) By Id(%s) And Status(%s)", r.cfg.TableName, keys.Hash, status)
+		return nil, errors.Wrapf(err, "Get Key on Table(%s) By Id(%s) And Status(%s)", r.cfg.TableName, orderType, status)
 	}
 
 	var operations []*types.DynamoEventMessage

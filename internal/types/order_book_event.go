@@ -14,11 +14,13 @@ import (
 )
 
 const (
-	Buy         = "BUY"
-	Sale        = "SALE"
-	MatchEngine = "MATCH_ENGINE"
-	Available   = "AVAILABLE"
-	Unavailable = "UNAVAILABLE"
+	Buy           = "BUY"
+	Sale          = "SALE"
+	MatchEngine   = "MATCH_ENGINE"
+	InTrade       = "IN_TRADE"
+	InNegotiation = "IN_NEGOTIATION"
+	InOffer       = "IN_OFFER"
+	Finished      = "FINISHED"
 )
 
 type (
@@ -61,6 +63,8 @@ type (
 		NewImage                    map[string]*dynamodb.AttributeValue `json:"NewImage,omitempty"`
 		OldImage                    map[string]*dynamodb.AttributeValue `json:"OldImage,omitempty"`
 	}
+
+	MatchOrders map[string][]*DynamoEventMessage
 )
 
 func (eventMessage DynamoEventMessage) ToString() string {
