@@ -31,17 +31,17 @@ func (m Match) Match(ctx context.Context, record *types.DynamoRecord) {
 		return
 	}
 
-	sales, err := m.repository.FindAll(ctx, getOperationType(newImage), newImage.Status)
+	orders, err := m.repository.FindAll(ctx, getOperationType(newImage), newImage.Status)
 	if err != nil {
 		return
 	}
 
-	matchOrders, itsAMatch := match(newImage, sales)
+	matchOrders, itsAMatch := match(newImage, orders)
 	if itsAMatch {
 		if err := m.repository.Update(ctx, matchOrders, newImage, types.Finished); err != nil {
 			return
 		}
-		if err := m.queue.Send(ctx, buildOrders(newImage, sales)); err != nil {
+		if err := m.queue.Send(ctx, buildOrders(newImage, orders)); err != nil {
 			return
 		}
 	}
