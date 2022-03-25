@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/arn"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"log"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -71,35 +69,10 @@ func (eventMessage DynamoEventMessage) ToString() string {
 	return fmt.Sprintf("%+v\n", eventMessage)
 }
 
-func (dynamoRecord DynamoRecord) GetTableName() (string, error) {
-	sourceArn, err := arn.Parse(dynamoRecord.EventSourceArn)
-	if err != nil {
-		return "", err
-	}
-	if sourceArn.Service != dynamodb.ServiceName {
-		return "", fmt.Errorf("SourceArn Service is not DynamoDB: %s", sourceArn.Service)
-	}
-	resource := sourceArn.Resource
-	tableName := strings.TrimPrefix(resource, "table/")
-	index := strings.Index(tableName, "/stream")
-	if index > -1 {
-		return strings.Split(tableName, "/stream")[0], nil
-	}
-	return tableName, nil
-}
-
-func (keys DynamoEventMessageKey) GetKey() map[string]*dynamodb.AttributeValue {
+func (eventMessage DynamoEventMessage) GetKey() map[string]*dynamodb.AttributeValue {
 	return map[string]*dynamodb.AttributeValue{
-		"id":   {S: aws.String(keys.Range)},
-		"type": {S: aws.String(keys.Hash)},
-	}
-}
-
-func (eventMessage DynamoEventMessage) GetKey() DynamoEventMessageKey {
-
-	return DynamoEventMessageKey{
-		eventMessage.Type,
-		eventMessage.Id,
+		"id":   {S: aws.String(eventMessage.Id)},
+		"type": {S: aws.String(eventMessage.Type)},
 	}
 }
 
@@ -131,10 +104,4 @@ func (dynamoRecord DynamoRecord) ConverterEventRaw() (new *DynamoEventMessage, o
 		}
 	}
 	return
-}
-
-func (dynamoRecord DynamoRecord) Key() *DynamoEventMessageKey {
-	var key DynamoEventMessageKey
-	_ = dynamodbattribute.UnmarshalMap(dynamoRecord.Change.Keys, &key)
-	return &key
 }

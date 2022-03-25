@@ -51,7 +51,7 @@ func (r operationRepository) Update(ctx context.Context, matchOrders types.Match
 	var transactions []*dynamodb.TransactWriteItem
 	transactions = append(transactions, &dynamodb.TransactWriteItem{
 		Update: &dynamodb.Update{
-			Key:                       operation.GetKey().GetKey(),
+			Key:                       operation.GetKey(),
 			ConditionExpression:       nil,
 			ExpressionAttributeValues: expressionAttributeValues,
 			TableName:                 aws.String(r.cfg.TableName),
@@ -66,7 +66,7 @@ func (r operationRepository) Update(ctx context.Context, matchOrders types.Match
 				TableName:                 aws.String(r.cfg.TableName),
 				UpdateExpression:          updateExpression,
 				ExpressionAttributeValues: expressionAttributeValues,
-				Key:                       match.GetKey().GetKey(),
+				Key:                       match.GetKey(),
 			},
 		})
 	}
