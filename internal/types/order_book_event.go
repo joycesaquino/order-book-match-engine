@@ -12,13 +12,11 @@ import (
 )
 
 const (
-	Buy           = "BUY"
-	Sale          = "SALE"
-	MatchEngine   = "MATCH_ENGINE"
-	InTrade       = "IN_TRADE"
-	InNegotiation = "IN_NEGOTIATION"
-	InOffer       = "IN_OFFER"
-	Finished      = "FINISHED"
+	Buy         = "BUY"
+	Sale        = "SALE"
+	MatchEngine = "MATCH_ENGINE"
+	InTrade     = "IN_TRADE"
+	Finished    = "FINISHED"
 )
 
 type (
