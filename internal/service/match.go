@@ -5,13 +5,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	orderBook "github.com/joycesaquino/order-book-match-engine/internal/order-book"
+	"github.com/joycesaquino/order-book-match-engine/internal/queue"
 	"github.com/joycesaquino/order-book-match-engine/internal/types"
-	walletIntegration "github.com/joycesaquino/order-book-match-engine/internal/wallet-integration"
 )
 
 type Match struct {
 	repository orderBook.OperationRepository
-	queue      *walletIntegration.Queue
+	queue      *queue.Queue
 }
 
 func NewMatchEngine(sess *session.Session) *Match {
@@ -20,7 +20,7 @@ func NewMatchEngine(sess *session.Session) *Match {
 
 	return &Match{
 		repository: repository,
-		queue:      walletIntegration.NewQueue(sess),
+		queue:      queue.NewQueue(sess),
 	}
 }
 
