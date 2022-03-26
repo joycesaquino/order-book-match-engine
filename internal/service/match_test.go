@@ -1,7 +1,7 @@
 package service
 
 import (
-	"order-book-match-engine/internal/types"
+	"github.com/joycesaquino/order-book-match-engine/internal/types"
 	"reflect"
 	"testing"
 )

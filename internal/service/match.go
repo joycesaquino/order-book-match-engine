@@ -4,9 +4,9 @@ import (
 	"context"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	orderBook "order-book-match-engine/internal/order-book"
-	"order-book-match-engine/internal/types"
-	walletIntegration "order-book-match-engine/internal/wallet-integration"
+	orderBook "github.com/joycesaquino/order-book-match-engine/internal/order-book"
+	"github.com/joycesaquino/order-book-match-engine/internal/types"
+	walletIntegration "github.com/joycesaquino/order-book-match-engine/internal/wallet-integration"
 )
 
 type Match struct {

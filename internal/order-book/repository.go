@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/caarlos0/env"
+	"github.com/joycesaquino/order-book-match-engine/internal/types"
 	"github.com/pkg/errors"
 	"log"
-	"order-book-match-engine/internal/types"
 	"time"
 )
 

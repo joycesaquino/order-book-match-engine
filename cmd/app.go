@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"order-book-match-engine/internal/service"
-	"order-book-match-engine/internal/types"
+	"github.com/joycesaquino/order-book-match-engine/internal/service"
+	"github.com/joycesaquino/order-book-match-engine/internal/types"
 )
 
 func main() {
