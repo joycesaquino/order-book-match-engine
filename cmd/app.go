@@ -16,7 +16,6 @@ func main() {
 // Handler TODO Cloud formation
 // Handler TODO Local Stack
 // Handler TODO Cobertura de testes
-
 func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 
 	sess, err := session.NewSession()
@@ -32,7 +31,7 @@ func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 			return err
 		}
 
-		if newImage.Status == types.InTrade {
+		if newImage.OperationStatus == types.InTrade && record.EventName != types.REMOVE {
 			matchEngine.Match(ctx, newImage)
 		}
 	}

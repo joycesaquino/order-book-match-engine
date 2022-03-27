@@ -17,6 +17,7 @@ const (
 	MatchEngine = "MATCH_ENGINE"
 	InTrade     = "IN_TRADE"
 	Finished    = "FINISHED"
+	REMOVE      = "REMOVE"
 )
 
 type (
