@@ -26,7 +26,7 @@ func NewMatchEngine(sess *session.Session) *Match {
 
 func (m Match) Match(ctx context.Context, newImage *types.DynamoEventMessage) {
 
-	orders, err := m.repository.FindAll(ctx, getOperationType(newImage), newImage.Status)
+	orders, err := m.repository.FindAll(ctx, getOperationType(newImage), newImage.OperationStatus)
 	if err != nil {
 		return
 	}
