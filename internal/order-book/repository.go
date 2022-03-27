@@ -83,16 +83,12 @@ func (r operationRepository) Update(ctx context.Context, matchOrders types.Match
 func (r operationRepository) FindAll(ctx context.Context, orderType string, status string) (types.Messages, error) {
 
 	query := &dynamodb.QueryInput{
-		KeyConditions: map[string]*dynamodb.Condition{
-			"type": {
-				AttributeValueList: []*dynamodb.AttributeValue{{S: aws.String(orderType)}},
-				ComparisonOperator: aws.String(dynamodb.ComparisonOperatorEq),
-			},
-			"id": {
-				AttributeValueList: []*dynamodb.AttributeValue{{S: aws.String(status)}},
-				ComparisonOperator: aws.String(dynamodb.ComparisonOperatorBeginsWith),
-			},
+		KeyConditionExpression: aws.String("operationType = :operationType AND operationStatus = :operationStatus"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":operationStatus": {S: aws.String(status)},
+			":operationType":   {S: aws.String(orderType)},
 		},
+		IndexName: aws.String("operationStatusIndex"),
 		TableName: aws.String(r.cfg.TableName),
 	}
 

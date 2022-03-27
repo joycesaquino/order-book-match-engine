@@ -26,15 +26,15 @@ type (
 	}
 
 	DynamoEventMessage struct {
-		Id        string  `dynamodbav:"id"`
-		RequestId string  `dynamodbav:"requestId"`
-		Hash      string  `dynamodbav:"hash"`
-		Value     float64 `dynamodbav:"value"`
-		Quantity  int     `dynamodbav:"quantity"`
-		Status    string  `dynamodbav:"status"`
-		Type      string  `dynamodbav:"type"`
-		UserId    int     `dynamodbav:"userId"`
-		Audit     Audit   `dynamodbav:"audit"`
+		Id              string  `dynamodbav:"id"`
+		RequestId       string  `dynamodbav:"requestId"`
+		Hash            string  `dynamodbav:"hash"`
+		Value           float64 `dynamodbav:"value"`
+		Quantity        int     `dynamodbav:"quantity"`
+		OperationStatus string  `dynamodbav:"operationStatus"`
+		Type            string  `dynamodbav:"type"`
+		UserId          int     `dynamodbav:"userId"`
+		Audit           Audit   `dynamodbav:"audit"`
 	}
 
 	Audit struct {
