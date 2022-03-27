@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Order book match engine function"
+
+Parameters:
+  # Version
+  Version:
+    Type: String
+
+  # AWS Configuration
+  SubnetIds:
+    Type: CommaDelimitedList
+  SecurityGroup:
+    Type: CommaDelimitedList
+  ExecutionRoleArn:
+    Type: String
+
+Resources:
+
+  OrderBookWalletIntegrationQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 150
+      MessageRetentionPeriod: 604800 # 7 Dias de retencão
+      QueueName: !Sub "order-book-wallet-api-integration-queue"
+
+  OrderBookMatchEngineFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 120 # segundos
+      Runtime: go1.x
+      Handler: app
+      AutoPublishAlias: !Ref AliasName
+      VersionDescription: !Ref Version
+      Description: "Lambda responsável pelo match entre compras e vendas"
+      FunctionName: !Sub "order-book-match-engine"
+      ReservedConcurrentExecutions: 20 # Quantos lambdas por vez
+      Role: !Ref ExecutionRoleArn
+      Events:
+        PriceStream:
+          Type: DynamoDB
+          Properties:
+            Enabled: true
+            BatchSize: 25
+            StartingPosition: LATEST
+            Stream:
+              Fn::ImportValue: "order-book-operation-stream-arn"
+            MaximumBatchingWindowInSeconds: 60
+            ParallelizationFactor: 5
+      Environment:
+        Variables:
+          AWS_REGION: "sa-east-1"
+          ORDER_BOOK_TABLE_NAME: "order-book-operation"
+          WALLET_INTEGRATION_QUEUE_URL: "order-book-wallet-api-integration-queue-url"
+      VpcConfig:
+        SubnetIds: !Ref SubnetIds
+        SecurityGroupIds: !Ref SecurityGroup
