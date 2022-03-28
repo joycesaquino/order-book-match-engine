@@ -17,4 +17,4 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: order-book-match-engine
           source: template.yml
-          role: arn:aws:iam::097266595558:policy/AWSServiceRoleForLambdaGithubActions
+          role: arn:aws:iam::097266595558:policy/AWSServiceRoleOrderBookMatchEngine
