@@ -27,10 +27,10 @@ Resources:
   OrderBookMatchEngineFunction:
     Type: AWS::Serverless::Function
     Properties:
+      MemorySize: 128
       Timeout: 120 # segundos
       Runtime: go1.x
       Handler: app
-      AutoPublishAlias: !Ref AliasName
       VersionDescription: !Ref Version
       Description: "Lambda responsável pelo match entre compras e vendas"
       FunctionName: !Sub "order-book-match-engine"
@@ -43,8 +43,7 @@ Resources:
             Enabled: true
             BatchSize: 25
             StartingPosition: LATEST
-            Stream:
-              Fn::ImportValue: "order-book-operation-stream-arn"
+            Stream: "order-book-operation-stream-arn"
             MaximumBatchingWindowInSeconds: 60
             ParallelizationFactor: 5
       Environment:
