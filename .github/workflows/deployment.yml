@@ -22,7 +22,7 @@ jobs:
         run: go build -v cmd/app.go
 
       - name: Zip
-        run: zip function.zip main
+        run: zip function.zip app
 
       - name: Deploy
         uses: appleboy/lambda-action@master
