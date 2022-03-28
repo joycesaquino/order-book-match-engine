@@ -9,11 +9,6 @@ jobs:
     steps:
       - name: checkout source code
         uses: actions/checkout@v1
-      - name: Configure AWS Credentials
-        uses: fuller-inc/actions-aws-assume-role@v1
-        with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: arn:aws:iam::097266595558:role/OrderBookRole
       - name: default deploy
         uses: appleboy/lambda-action@master
         with:
