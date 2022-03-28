@@ -19,7 +19,7 @@ jobs:
         run: go mod tidy
 
       - name: Build
-        run: go build -v app.go
+        run: go build -v cmd/app.go
 
       - name: Zip
         run: zip function.zip main
