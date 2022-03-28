@@ -17,7 +17,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Build binary
         run: |
-          cd ../../cmd && go env -w GO111MODULE=auto && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-extldflags '-static'" -o app app.go && zip deployment.zip app
+          cd ../.. && go env -w GO111MODULE=auto && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-extldflags '-static'" -o app ./cmd/app.go && zip deployment.zip app
       - name: deploy
         uses: appleboy/lambda-action@master
         with:
