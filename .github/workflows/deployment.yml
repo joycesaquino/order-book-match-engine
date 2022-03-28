@@ -19,7 +19,7 @@ jobs:
         run: |
           cd ../.. && go env -w GO111MODULE=auto && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-extldflags '-static'" -o app app.go && zip deployment.zip app
       - name: deploy
-        uses: ./
+        uses: appleboy/lambda-action@master
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
