@@ -7,14 +7,6 @@ Parameters:
   Version:
     Type: String
 
-  # AWS Configuration
-  SubnetIds:
-    Type: CommaDelimitedList
-  SecurityGroup:
-    Type: CommaDelimitedList
-  ExecutionRoleArn:
-    Type: String
-
 Resources:
 
   OrderBookWalletIntegrationQueue:
@@ -51,6 +43,3 @@ Resources:
           AWS_REGION: "sa-east-1"
           ORDER_BOOK_TABLE_NAME: "order-book-operation"
           WALLET_INTEGRATION_QUEUE_URL: "order-book-wallet-api-integration-queue-url"
-      VpcConfig:
-        SubnetIds: !Ref SubnetIds
-        SecurityGroupIds: !Ref SecurityGroup
