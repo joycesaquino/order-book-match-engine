@@ -1,6 +1,4 @@
-- name: AWS Lambda Deploy
-  uses: appleboy/lambda-action@v0.1.5
-
+name: deploy to lambda
 on: [push]
 jobs:
 
