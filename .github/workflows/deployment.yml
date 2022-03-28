@@ -2,30 +2,17 @@ name: deploy to lambda
 on: [push]
 jobs:
 
-  deploy_zip:
-    name: order-book-match-engine
+  deploy_source:
+    name: deploy lambda from source
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [1.16.x]
     steps:
       - name: checkout source code
         uses: actions/checkout@v1
-      - name: Install Go
-        uses: actions/setup-go@v1
-        with:
-          go-version: ${{ matrix.go-version }}
-      - name: Build binary
-        run: |
-          cd ../.. && go env -w GO111MODULE=auto && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -a -o main cmd/app.go && zip deployment.zip main
-      - name: deploy
+      - name: default deploy
         uses: appleboy/lambda-action@master
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: order-book-match-engine
-          zip_file: deployment.zip
-          memory_size: 128
-          timeout: 10
-          handler: app
+          source: template.yml
