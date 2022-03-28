@@ -24,25 +24,25 @@ func NewMatchEngine(sess *session.Session) *Match {
 	}
 }
 
-func (m Match) Match(ctx context.Context, newImage *types.DynamoEventMessage) {
+func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) {
 
-	orders, err := m.repository.FindAll(ctx, getOperationType(newImage), newImage.OperationStatus)
+	orders, err := m.repository.FindAll(ctx, getOperationType(operation), types.InTrade)
 	if err != nil {
 		return
 	}
 
-	matchOrders, itsAMatch := match(newImage, orders)
+	matchOrders, itsAMatch := match(operation, orders)
 	if itsAMatch {
-		if err := m.repository.Update(ctx, matchOrders, newImage, types.Finished); err != nil {
+		if err := m.repository.Update(ctx, matchOrders, operation, types.Finished); err != nil {
 			return
 		}
-		if err := m.queue.Send(ctx, buildOrders(newImage, orders)); err != nil {
+		if err := m.queue.Send(ctx, buildOrders(operation, orders)); err != nil {
 			return
 		}
 	}
 
 	if !itsAMatch {
-		if err := m.repository.Update(ctx, matchOrders, newImage, types.InTrade); err != nil {
+		if err := m.repository.Update(ctx, matchOrders, operation, types.InTrade); err != nil {
 			return
 		}
 	}
@@ -67,32 +67,25 @@ func getOperationType(newImage *types.DynamoEventMessage) string {
 
 func match(operation *types.DynamoEventMessage, orders types.Messages) (map[string][]*types.DynamoEventMessage, bool) {
 
-	var mod = operation.Quantity
+	var limit = operation.Quantity
 	var value int
 
 	matchOrders := make(map[string][]*types.DynamoEventMessage)
 	for _, order := range orders.SortByCreatedAt() {
 
-		if operation.Quantity >= order.Quantity {
-
-			if (mod - order.Quantity) < 0 {
-				mod = mod + order.Quantity
-				continue
-			}
-
-			mod = mod - order.Quantity
-			if mod == 0 {
-
-				matchOrders[operation.Id] = append(matchOrders[operation.Id], order)
-				value = value + order.Quantity
-				return matchOrders, operation.Quantity == value
-			}
-
-			matchOrders[operation.Id] = append(matchOrders[operation.Id], order)
-			value = value + order.Quantity
+		if (limit - order.Quantity) < 0 {
 			continue
 		}
 
+		limit = limit - order.Quantity
+		if limit == 0 {
+			matchOrders[operation.Id] = append(matchOrders[operation.Id], order)
+			value = value + order.Quantity
+			return matchOrders, operation.Quantity == value
+		}
+
+		matchOrders[operation.Id] = append(matchOrders[operation.Id], order)
+		value = value + order.Quantity
 	}
 
 	return matchOrders, operation.Quantity == value
