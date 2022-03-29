@@ -1,3 +1,3 @@
-# order-book-match-engine
+# Match Engine
 
-Lambda function egine to match buy and sale orders
+Lambda function responsible to match buy and sale orders
