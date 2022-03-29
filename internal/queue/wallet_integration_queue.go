@@ -15,12 +15,16 @@ type Config struct {
 	Region      string `env:"AWS_REGION,required"`
 }
 
-type Queue struct {
+type sqsQueue struct {
 	awsSqs *sqs.SQS
 	config *Config
 }
 
-func (queue *Queue) Send(ctx context.Context, event interface{}) error {
+type Queue interface {
+	Send(ctx context.Context, event interface{}) error
+}
+
+func (queue sqsQueue) Send(ctx context.Context, event interface{}) error {
 	bytes, e := json.Marshal(event)
 	if e != nil {
 		return e
@@ -35,7 +39,7 @@ func (queue *Queue) Send(ctx context.Context, event interface{}) error {
 	return e
 }
 
-func NewQueue(sess *session.Session) *Queue {
+func NewSQSQueue(sess *session.Session) Queue {
 
 	var config *Config
 	err := env.Parse(&config)
@@ -43,7 +47,7 @@ func NewQueue(sess *session.Session) *Queue {
 		log.Fatalf("[ERROR] - Erro on configure Wallet Integration Queue client: %s", err)
 	}
 
-	return &Queue{
+	return &sqsQueue{
 		awsSqs: sqs.New(sess),
 		config: config,
 	}

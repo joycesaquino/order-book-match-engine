@@ -11,7 +11,7 @@ import (
 
 type Match struct {
 	repository orderBook.OperationRepository
-	queue      *queue.Queue
+	queue      queue.Queue
 }
 
 func NewMatchEngine(sess *session.Session) *Match {
@@ -20,7 +20,7 @@ func NewMatchEngine(sess *session.Session) *Match {
 
 	return &Match{
 		repository: repository,
-		queue:      queue.NewQueue(sess),
+		queue:      queue.NewSQSQueue(sess),
 	}
 }
 
@@ -36,7 +36,7 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) {
 		if err := m.repository.Update(ctx, matchOrders, operation, types.Finished); err != nil {
 			return
 		}
-		if err := m.queue.Send(ctx, buildOrders(operation, orders)); err != nil {
+		if err := m.queue.Send(ctx, buildOrders(operation, matchOrders)); err != nil {
 			return
 		}
 	}
@@ -46,7 +46,6 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) {
 			return
 		}
 	}
-
 }
 
 func getOperationType(newImage *types.DynamoEventMessage) string {
@@ -65,12 +64,12 @@ func getOperationType(newImage *types.DynamoEventMessage) string {
 	return operationType
 }
 
-func match(operation *types.DynamoEventMessage, orders types.Messages) (map[string][]*types.DynamoEventMessage, bool) {
+func match(operation *types.DynamoEventMessage, orders types.Messages) ([]*types.DynamoEventMessage, bool) {
 
 	var limit = operation.Quantity
 	var value int
 
-	matchOrders := make(map[string][]*types.DynamoEventMessage)
+	var matchOrders []*types.DynamoEventMessage
 	for _, order := range orders.SortByCreatedAt() {
 
 		if (limit - order.Quantity) < 0 {
@@ -79,36 +78,36 @@ func match(operation *types.DynamoEventMessage, orders types.Messages) (map[stri
 
 		limit = limit - order.Quantity
 		if limit == 0 {
-			matchOrders[operation.Id] = append(matchOrders[operation.Id], order)
+			matchOrders = append(matchOrders, order)
 			value = value + order.Quantity
 			return matchOrders, operation.Quantity == value
 		}
 
-		matchOrders[operation.Id] = append(matchOrders[operation.Id], order)
+		matchOrders = append(matchOrders, order)
 		value = value + order.Quantity
 	}
 
 	return matchOrders, operation.Quantity == value
 }
 
-func buildOrders(operation *types.DynamoEventMessage, ordersMatch []*types.DynamoEventMessage) (orders []*types.Order) {
+func buildOrders(buy *types.DynamoEventMessage, sales []*types.DynamoEventMessage) (orders []*types.Order) {
 
 	orders = append(orders,
 		&types.Order{
-			Value:         operation.Value,
-			Quantity:      operation.Quantity,
+			Value:         buy.Value,
+			Quantity:      buy.Quantity,
 			OperationType: types.Buy,
-			UserId:        operation.UserId,
-			RequestId:     operation.RequestId,
+			UserId:        buy.UserId,
+			RequestId:     buy.RequestId,
 		})
 
-	for _, orderMatch := range ordersMatch {
+	for _, sale := range sales {
 		orders = append(orders, &types.Order{
-			Value:         orderMatch.Value,
-			Quantity:      orderMatch.Quantity,
-			OperationType: orderMatch.Type,
-			UserId:        orderMatch.UserId,
-			RequestId:     orderMatch.RequestId,
+			Value:         sale.Value,
+			Quantity:      sale.Quantity,
+			OperationType: types.Sale,
+			UserId:        sale.UserId,
+			RequestId:     sale.RequestId,
 		})
 	}
 

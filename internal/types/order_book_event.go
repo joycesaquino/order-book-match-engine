@@ -60,8 +60,6 @@ type (
 		NewImage                    map[string]*dynamodb.AttributeValue `json:"NewImage,omitempty"`
 		OldImage                    map[string]*dynamodb.AttributeValue `json:"OldImage,omitempty"`
 	}
-
-	MatchOrders map[string][]*DynamoEventMessage
 )
 
 func (eventMessage DynamoEventMessage) ToString() string {

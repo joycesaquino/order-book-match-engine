@@ -26,7 +26,7 @@ type (
 
 	OperationRepository interface {
 		FindAll(ctx context.Context, orderType string, status string) (types.Messages, error)
-		Update(ctx context.Context, matchOrders types.MatchOrders, operation *types.DynamoEventMessage, status string) error
+		Update(ctx context.Context, matchOrders types.Messages, operation *types.DynamoEventMessage, status string) error
 	}
 
 	operationRepository struct {
@@ -35,7 +35,7 @@ type (
 	}
 )
 
-func (r operationRepository) Update(ctx context.Context, matchOrders types.MatchOrders, operation *types.DynamoEventMessage, status string) error {
+func (r operationRepository) Update(ctx context.Context, matchOrders types.Messages, operation *types.DynamoEventMessage, status string) error {
 	now, err := dynamodbattribute.Marshal(time.Now())
 	if err != nil {
 		return errors.Wrap(err, "Marshal TimeNow to AttributeValue")
@@ -59,7 +59,7 @@ func (r operationRepository) Update(ctx context.Context, matchOrders types.Match
 		},
 	})
 
-	for _, match := range matchOrders[operation.Id] {
+	for _, match := range matchOrders {
 		transactions = append(transactions, &dynamodb.TransactWriteItem{
 			Update: &dynamodb.Update{
 				ConditionExpression:       nil,
