@@ -14,7 +14,7 @@ Resources:
     Properties:
       VisibilityTimeout: 150
       MessageRetentionPeriod: 604800 # 7 Dias de retencão
-      QueueName: !Sub "order-book-wallet-api-integration-queue"
+      QueueName: "order-book-wallet-api-integration-queue"
 
   OrderBookMatchEngineFunction:
     Type: AWS::Serverless::Function
@@ -23,9 +23,8 @@ Resources:
       Timeout: 120 # segundos
       Runtime: go1.x
       Handler: app
-      VersionDescription: !Ref Version
       Description: "Lambda responsável pelo match entre compras e vendas"
-      FunctionName: !Sub "order-book-match-engine"
+      FunctionName: "order-book-match-engine"
       ReservedConcurrentExecutions: 20 # Quantos lambdas por vez
       Role: !Ref ExecutionRoleArn
       Events:

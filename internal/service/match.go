@@ -91,24 +91,24 @@ func match(operation *types.DynamoEventMessage, orders types.Messages) (map[stri
 	return matchOrders, operation.Quantity == value
 }
 
-func buildOrders(buy *types.DynamoEventMessage, sales []*types.DynamoEventMessage) (orders []*types.Order) {
+func buildOrders(operation *types.DynamoEventMessage, ordersMatch []*types.DynamoEventMessage) (orders []*types.Order) {
 
 	orders = append(orders,
 		&types.Order{
-			Value:         buy.Value,
-			Quantity:      buy.Quantity,
+			Value:         operation.Value,
+			Quantity:      operation.Quantity,
 			OperationType: types.Buy,
-			UserId:        buy.UserId,
-			RequestId:     buy.RequestId,
+			UserId:        operation.UserId,
+			RequestId:     operation.RequestId,
 		})
 
-	for _, sale := range sales {
+	for _, orderMatch := range ordersMatch {
 		orders = append(orders, &types.Order{
-			Value:         sale.Value,
-			Quantity:      sale.Quantity,
-			OperationType: types.Sale,
-			UserId:        sale.UserId,
-			RequestId:     sale.RequestId,
+			Value:         orderMatch.Value,
+			Quantity:      orderMatch.Quantity,
+			OperationType: orderMatch.Type,
+			UserId:        orderMatch.UserId,
+			RequestId:     orderMatch.RequestId,
 		})
 	}
 
