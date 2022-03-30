@@ -28,7 +28,7 @@ func TestHandler(t *testing.T) {
 							"operationType":   {S: aws.String("BUY")},
 							"userId":          {N: aws.String("2233998")},
 							"id":              {S: aws.String("2233998|e99fc025-eb52-410b-b379-3288a4e712a4")},
-							"quantity":        {N: aws.String("100")},
+							"quantity":        {N: aws.String("200")},
 							"value":           {N: aws.String("1334.99")},
 							"hash":            {S: aws.String("a6c23d29bced9632f76ec807d763f5d0")},
 							"operationStatus": {S: aws.String("IN_TRADE")},
