@@ -2,19 +2,39 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/caarlos0/env"
 	orderBook "github.com/joycesaquino/order-book-match-engine/internal/order-book"
 	"github.com/joycesaquino/order-book-match-engine/internal/queue"
 	"github.com/joycesaquino/order-book-match-engine/internal/types"
+	"log"
 )
+
+type Config struct {
+	WalletQueue string `env:"WALLET_INTEGRATION_QUEUE_URL" envDefault:"order-book-wallet-integration-queue"`
+	Region      string `env:"AWS_REGION" envDefault:"sa-east-1"`
+}
 
 type Match struct {
 	repository orderBook.OperationRepository
 	queue      queue.Queue
+	config     Config
 }
 
-func NewMatchEngine(sess *session.Session) *Match {
+func NewMatchEngine() *Match {
+
+	var config Config
+	if err := env.Parse(&config); err != nil {
+		log.Fatalf("[ERROR] Missing configuration for Match engine: %s", err)
+	}
+
+	sess, _ := session.NewSession(&aws.Config{
+		Region: aws.String(config.Region),
+	})
+
 	db := dynamodb.New(sess)
 	repository := orderBook.NewOperationRepository(db)
 
@@ -24,28 +44,40 @@ func NewMatchEngine(sess *session.Session) *Match {
 	}
 }
 
-func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) {
+func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) error {
 
 	orders, err := m.repository.FindAll(ctx, getOperationType(operation), types.InTrade)
 	if err != nil {
-		return
+		return fmt.Errorf("[ERROR] - error on trying find orders: %v", err)
+	}
+
+	if len(orders) == 0 {
+		fmt.Printf("[INFO] - Cant find any orders to match process for order id %s", operation.Id)
+		return nil
 	}
 
 	matchOrders, itsAMatch := match(operation, orders)
 	if itsAMatch {
-		if err := m.repository.Update(ctx, matchOrders, operation, types.Finished); err != nil {
-			return
+		if err := m.repository.UpdateAll(ctx, matchOrders, operation, types.Finished); err != nil {
+			return fmt.Errorf("[ERROR] - error on update match orders: %v", err)
 		}
+
 		if err := m.queue.Send(ctx, buildOrders(operation, matchOrders)); err != nil {
-			return
+			return fmt.Errorf("[ERROR] - error on send match orders to wallet integration: %v", err)
 		}
 	}
 
 	if !itsAMatch {
-		if err := m.repository.Update(ctx, matchOrders, operation, types.InTrade); err != nil {
-			return
+		fmt.Printf("[INFO] - Cant find a valid match for order %s orders to match process", operation.Id)
+		if err := m.repository.Update(ctx, operation, types.InTrade); err != nil {
+			return nil
 		}
 	}
+	for _, order := range matchOrders {
+		fmt.Printf("Match with sucess for operation type %s id %s order match type %s, id %s", operation.Type, operation.Id, order.Type, order.Id)
+	}
+
+	return nil
 }
 
 func getOperationType(newImage *types.DynamoEventMessage) string {

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -29,12 +28,12 @@ type (
 
 	DynamoEventMessage struct {
 		Id              string  `dynamodbav:"id"`
-		RequestId       string  `dynamodbav:"requestId"`
+		RequestId       string  `dynamodbav:"traceId"`
 		Hash            string  `dynamodbav:"hash"`
 		Value           float64 `dynamodbav:"value"`
 		Quantity        int     `dynamodbav:"quantity"`
 		OperationStatus string  `dynamodbav:"operationStatus"`
-		Type            string  `dynamodbav:"type"`
+		Type            string  `dynamodbav:"operationType"`
 		UserId          int     `dynamodbav:"userId"`
 		Audit           Audit   `dynamodbav:"audit"`
 	}
@@ -69,8 +68,8 @@ func (eventMessage DynamoEventMessage) ToString() string {
 
 func (eventMessage DynamoEventMessage) GetKey() map[string]*dynamodb.AttributeValue {
 	return map[string]*dynamodb.AttributeValue{
-		"id":   {S: aws.String(eventMessage.Id)},
-		"type": {S: aws.String(eventMessage.Type)},
+		"id":            {S: aws.String(eventMessage.Id)},
+		"operationType": {S: aws.String(eventMessage.Type)},
 	}
 }
 
@@ -84,28 +83,6 @@ func (messages Messages) SortByCreatedAt() []*DynamoEventMessage {
 	return messages
 }
 
-func ConverterEventRaw(attribute map[string]events.DynamoDBAttributeValue) (new *DynamoEventMessage, err error) {
-
-	dbAttrMap := make(map[string]*dynamodb.AttributeValue)
-	var out *DynamoEventMessage
-	for k, v := range attribute {
-		var dbAttr dynamodb.AttributeValue
-		bytes, marshalErr := v.MarshalJSON()
-		if marshalErr != nil {
-			return nil, marshalErr
-		}
-
-		if err := json.Unmarshal(bytes, &dbAttr); err != nil {
-			return nil, err
-		}
-		dbAttrMap[k] = &dbAttr
-	}
-	if err := dynamodbattribute.UnmarshalMap(dbAttrMap, &out); err != nil {
-		return nil, err
-	}
-	return out, nil
-
-}
 func (dynamoRecord DynamoRecord) ConverterEventRaw() (new *DynamoEventMessage, old *DynamoEventMessage, err error) {
 
 	if dynamoRecord.Change.OldImage != nil {

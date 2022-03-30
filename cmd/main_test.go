@@ -27,7 +27,7 @@ func TestHandler(t *testing.T) {
 						Change: types.Change{NewImage: map[string]*dynamodb.AttributeValue{
 							"operationType":   {S: aws.String("BUY")},
 							"id":              {S: aws.String("223344|e99fc025-eb52-410b-b379-3288a4e712a4")},
-							"quantity":        {N: aws.String("200")},
+							"quantity":        {N: aws.String("10")},
 							"value":           {N: aws.String("1334.99")},
 							"hash":            {S: aws.String("a6c23d29bced9632f76ec807d763f5d0")},
 							"operationStatus": {S: aws.String("IN_TRADE")},

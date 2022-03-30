@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/joycesaquino/order-book-match-engine/internal/service"
 	"github.com/joycesaquino/order-book-match-engine/internal/types"
 )
@@ -14,19 +12,15 @@ func main() {
 }
 
 func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
-	sess, err := session.NewSession()
-	if err != nil {
-		return err
-	}
 
-	matchEngine := service.NewMatchEngine(sess)
+	matchEngine := service.NewMatchEngine()
 	for _, record := range dynamoEvent.Records {
 
 		newImage, _, err := record.ConverterEventRaw()
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Dynamo Stream Image %v\n", newImage.ToString())
+
 		if newImage.OperationStatus == types.InTrade && record.EventName != types.REMOVE {
 			matchEngine.Match(ctx, newImage)
 		}
