@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/joycesaquino/order-book-match-engine/internal/service"
@@ -12,12 +13,7 @@ func main() {
 	lambda.Start(Handler)
 }
 
-// Handler TODO Add TTL em casos de Match para deleção
-// Handler TODO Cloud formation
-// Handler TODO Local Stack
-// Handler TODO Cobertura de testes
 func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
-
 	sess, err := session.NewSession()
 	if err != nil {
 		return err
@@ -30,7 +26,7 @@ func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 		if err != nil {
 			return err
 		}
-
+		fmt.Printf("Dynamo Stream Image %v\n", newImage.ToString())
 		if newImage.OperationStatus == types.InTrade && record.EventName != types.REMOVE {
 			matchEngine.Match(ctx, newImage)
 		}

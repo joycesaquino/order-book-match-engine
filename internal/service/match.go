@@ -16,7 +16,7 @@ type Match struct {
 
 func NewMatchEngine(sess *session.Session) *Match {
 	db := dynamodb.New(sess)
-	repository := orderBook.NewOperationRepository(db, nil)
+	repository := orderBook.NewOperationRepository(db)
 
 	return &Match{
 		repository: repository,

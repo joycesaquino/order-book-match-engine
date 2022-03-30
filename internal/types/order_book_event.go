@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -83,6 +84,28 @@ func (messages Messages) SortByCreatedAt() []*DynamoEventMessage {
 	return messages
 }
 
+func ConverterEventRaw(attribute map[string]events.DynamoDBAttributeValue) (new *DynamoEventMessage, err error) {
+
+	dbAttrMap := make(map[string]*dynamodb.AttributeValue)
+	var out *DynamoEventMessage
+	for k, v := range attribute {
+		var dbAttr dynamodb.AttributeValue
+		bytes, marshalErr := v.MarshalJSON()
+		if marshalErr != nil {
+			return nil, marshalErr
+		}
+
+		if err := json.Unmarshal(bytes, &dbAttr); err != nil {
+			return nil, err
+		}
+		dbAttrMap[k] = &dbAttr
+	}
+	if err := dynamodbattribute.UnmarshalMap(dbAttrMap, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+
+}
 func (dynamoRecord DynamoRecord) ConverterEventRaw() (new *DynamoEventMessage, old *DynamoEventMessage, err error) {
 
 	if dynamoRecord.Change.OldImage != nil {

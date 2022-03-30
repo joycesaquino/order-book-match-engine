@@ -21,7 +21,7 @@ type (
 	}
 
 	Config struct {
-		TableName string `env:"ORDER_BOOK_TABLE_NAME,required"`
+		TableName string `env:"ORDER_BOOK_TABLE_NAME" envDefault:"order-book-operation"`
 	}
 
 	OperationRepository interface {
@@ -30,7 +30,7 @@ type (
 	}
 
 	operationRepository struct {
-		cfg *Config
+		cfg Config
 		db  DynamoDBAPI
 	}
 )
@@ -107,13 +107,11 @@ func (r operationRepository) FindAll(ctx context.Context, orderType string, stat
 	return operations, nil
 }
 
-func NewOperationRepository(client DynamoDBAPI, config *Config) OperationRepository {
+func NewOperationRepository(client DynamoDBAPI) OperationRepository {
 
-	if config == nil {
-		config = new(Config)
-		if err := env.Parse(config); err != nil {
-			log.Fatalf("[ERROR] Missing configuration for operation repository: %s", err)
-		}
+	var config Config
+	if err := env.Parse(&config); err != nil {
+		log.Fatalf("[ERROR] Missing configuration for operation repository: %s", err)
 	}
 
 	return &operationRepository{

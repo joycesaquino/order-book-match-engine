@@ -14,7 +14,7 @@ Resources:
     Properties:
       VisibilityTimeout: 150
       MessageRetentionPeriod: 604800 # 7 Dias de retencão
-      QueueName: "order-book-wallet-api-integration-queue"
+      QueueName: "order-book-wallet-integration-queue"
 
   OrderBookMatchEngineFunction:
     Type: AWS::Serverless::Function

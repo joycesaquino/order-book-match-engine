@@ -11,13 +11,13 @@ import (
 )
 
 type Config struct {
-	WalletQueue string `env:"WALLET_INTEGRATION_QUEUE_URL,required"`
-	Region      string `env:"AWS_REGION,required"`
+	WalletQueue string `env:"WALLET_INTEGRATION_QUEUE_URL" envDefault:"order-book-wallet-integration-queue"`
+	Region      string `env:"AWS_REGION" envDefault:"sa-east-1"`
 }
 
 type sqsQueue struct {
 	awsSqs *sqs.SQS
-	config *Config
+	config Config
 }
 
 type Queue interface {
@@ -41,7 +41,7 @@ func (queue sqsQueue) Send(ctx context.Context, event interface{}) error {
 
 func NewSQSQueue(sess *session.Session) Queue {
 
-	var config *Config
+	var config Config
 	err := env.Parse(&config)
 	if err != nil {
 		log.Fatalf("[ERROR] - Erro on configure Wallet Integration Queue client: %s", err)
