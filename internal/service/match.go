@@ -68,13 +68,15 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) e
 	}
 
 	if !itsAMatch {
-		fmt.Printf("[INFO] - Cant find a valid match for order %s orders to match process", operation.Id)
+		fmt.Printf("[INFO] - Cant find a exact match for order %s", operation.Id)
 		if err := m.repository.Update(ctx, operation, types.InTrade); err != nil {
-			return nil
+			return fmt.Errorf("[ERROR] - error on updating un match orders: %v", err)
 		}
+		return nil
 	}
+
 	for _, order := range matchOrders {
-		fmt.Printf("Match with sucess for operation type %s id %s order match type %s, id %s", operation.Type, operation.Id, order.Type, order.Id)
+		fmt.Println(fmt.Sprintf("Match with sucess for operation type %s id %s order match type %s, id %s", operation.Type, operation.Id, order.Type, order.Id))
 	}
 
 	return nil
@@ -130,7 +132,7 @@ func buildOrders(buy *types.DynamoEventMessage, sales []*types.DynamoEventMessag
 			Quantity:      buy.Quantity,
 			OperationType: types.Buy,
 			UserId:        buy.UserId,
-			RequestId:     buy.RequestId,
+			TraceId:       buy.RequestId,
 		})
 
 	for _, sale := range sales {
@@ -139,7 +141,7 @@ func buildOrders(buy *types.DynamoEventMessage, sales []*types.DynamoEventMessag
 			Quantity:      sale.Quantity,
 			OperationType: types.Sale,
 			UserId:        sale.UserId,
-			RequestId:     sale.RequestId,
+			TraceId:       sale.RequestId,
 		})
 	}
 

@@ -10,5 +10,5 @@ type Order struct {
 	Quantity      int     `json:"quantity"`
 	OperationType string  `json:"operationType"`
 	UserId        int     `json:"userId"`
-	RequestId     string  `json:"RequestId"`
+	TraceId       string  `json:"traceId"`
 }
