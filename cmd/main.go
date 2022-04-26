@@ -22,7 +22,10 @@ func Handler(ctx context.Context, dynamoEvent types.DynamoEvent) error {
 		}
 
 		if newImage.OperationStatus == types.InTrade && record.EventName != types.REMOVE {
-			matchEngine.Match(ctx, newImage)
+			err := matchEngine.Match(ctx, newImage)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

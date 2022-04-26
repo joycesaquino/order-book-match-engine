@@ -52,7 +52,7 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) e
 	}
 
 	if len(orders) == 0 {
-		fmt.Printf("[INFO] - Cant find any orders to match process for order id %s", operation.Id)
+		fmt.Println(fmt.Sprintf("[INFO] - Cant find any orders to match process for order id %s", operation.Id))
 		return nil
 	}
 
@@ -68,7 +68,7 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) e
 	}
 
 	if !itsAMatch {
-		fmt.Printf("[INFO] - Cant find a exact match for order %s", operation.Id)
+		fmt.Println(fmt.Sprintf("[INFO] - Cant find a exact match for order %s", operation.Id))
 		if err := m.repository.Update(ctx, operation, types.InTrade); err != nil {
 			return fmt.Errorf("[ERROR] - error on updating un match orders: %v", err)
 		}
@@ -76,7 +76,7 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) e
 	}
 
 	for _, order := range matchOrders {
-		fmt.Println(fmt.Sprintf("Match with sucess for operation type %s id %s order match type %s, id %s", operation.Type, operation.Id, order.Type, order.Id))
+		fmt.Println(fmt.Sprintf("[INFO] Match with sucess for operation type %s id %s order match type %s, id %s", operation.Type, operation.Id, order.Type, order.Id))
 	}
 
 	return nil
@@ -105,20 +105,22 @@ func match(operation *types.DynamoEventMessage, orders types.Messages) ([]*types
 
 	var matchOrders []*types.DynamoEventMessage
 	for _, order := range orders.SortByCreatedAt() {
+		if operation.UserId != order.UserId {
 
-		if (limit - order.Quantity) < 0 {
-			continue
-		}
+			if (limit - order.Quantity) < 0 {
+				continue
+			}
 
-		limit = limit - order.Quantity
-		if limit == 0 {
+			limit = limit - order.Quantity
+			if limit == 0 {
+				matchOrders = append(matchOrders, order)
+				value = value + order.Quantity
+				return matchOrders, operation.Quantity == value
+			}
+
 			matchOrders = append(matchOrders, order)
 			value = value + order.Quantity
-			return matchOrders, operation.Quantity == value
 		}
-
-		matchOrders = append(matchOrders, order)
-		value = value + order.Quantity
 	}
 
 	return matchOrders, operation.Quantity == value
