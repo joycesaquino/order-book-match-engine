@@ -48,7 +48,7 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) e
 
 	orders, err := m.repository.FindAll(ctx, getOperationType(operation), types.InTrade)
 	if err != nil {
-		return fmt.Errorf("[ERROR] - error on trying find orders: %v", err)
+		return fmt.Errorf("[ERROR] - Error on trying find orders: %v", err)
 	}
 
 	if len(orders) == 0 {
@@ -59,11 +59,11 @@ func (m Match) Match(ctx context.Context, operation *types.DynamoEventMessage) e
 	matchOrders, itsAMatch := match(operation, orders)
 	if itsAMatch {
 		if err := m.repository.UpdateAll(ctx, matchOrders, operation, types.Finished); err != nil {
-			return fmt.Errorf("[ERROR] - error on update match orders: %v", err)
+			return fmt.Errorf("[ERROR] - Error on update match orders: %v", err)
 		}
 
 		if err := m.queue.Send(ctx, buildOrders(operation, matchOrders)); err != nil {
-			return fmt.Errorf("[ERROR] - error on send match orders to wallet integration: %v", err)
+			return fmt.Errorf("[ERROR] - Error on send match orders to wallet integration: %v", err)
 		}
 	}
 
