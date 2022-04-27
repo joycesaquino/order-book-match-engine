@@ -60,13 +60,22 @@ func TestMatch_Match(t *testing.T) {
 
 	orders3 = []*types.DynamoEventMessage{
 		{UserId: 11112, Quantity: 10},
+		{UserId: 11112, Quantity: 10},
 	}
 
 	var matchedOrders3 types.Messages
 
 	matchedOrders3 = []*types.DynamoEventMessage{
 		{UserId: 11112, Quantity: 10},
-		{UserId: 11112, Quantity: 10},
+	}
+
+	// test case 4
+
+	var orders4 types.Messages
+
+	orders4 = []*types.DynamoEventMessage{
+		{UserId: 11112, Quantity: 1},
+		{UserId: 11112, Quantity: 1},
 	}
 
 	type fields struct {
@@ -209,7 +218,7 @@ func TestMatch_Match(t *testing.T) {
 			mock: func(repository *mockRepository.OperationRepository, queue *mocksQueue.Queue) {
 				repository.
 					On("FindAll", mock.Anything, types.Sale, types.InTrade).
-					Return(orders3, nil).
+					Return(orders4, nil).
 					Times(1)
 
 				repository.
