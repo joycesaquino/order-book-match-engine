@@ -15,24 +15,26 @@ func TestMatch_Match(t *testing.T) {
 		Id:       "001",
 		Quantity: 10,
 		Type:     types.Buy,
+		UserId:   11113,
 	}
 
 	// test case 1
 	var orders1 types.Messages
 
 	orders1 = []*types.DynamoEventMessage{
-		{Quantity: 5},
-		{Quantity: 2},
-		{Quantity: 6},
-		{Quantity: 3},
+
+		{UserId: 11112, Quantity: 5},
+		{UserId: 11112, Quantity: 2},
+		{UserId: 11112, Quantity: 6},
+		{UserId: 11112, Quantity: 3},
 	}
 
 	var matchedOrders1 types.Messages
 
 	matchedOrders1 = []*types.DynamoEventMessage{
-		{Quantity: 5},
-		{Quantity: 2},
-		{Quantity: 3},
+		{UserId: 11112, Quantity: 5},
+		{UserId: 11112, Quantity: 2},
+		{UserId: 11112, Quantity: 3},
 	}
 
 	// test case 2
@@ -40,16 +42,16 @@ func TestMatch_Match(t *testing.T) {
 	var orders2 types.Messages
 
 	orders2 = []*types.DynamoEventMessage{
-		{Quantity: 10},
-		{Quantity: 2},
-		{Quantity: 6},
-		{Quantity: 3},
+		{UserId: 11112, Quantity: 10},
+		{UserId: 11112, Quantity: 2},
+		{UserId: 11112, Quantity: 6},
+		{UserId: 11112, Quantity: 3},
 	}
 
 	var matchedOrders2 types.Messages
 
 	matchedOrders2 = []*types.DynamoEventMessage{
-		{Quantity: 10},
+		{UserId: 11112, Quantity: 10},
 	}
 
 	// test case 3
@@ -57,16 +59,16 @@ func TestMatch_Match(t *testing.T) {
 	var orders3 types.Messages
 
 	orders3 = []*types.DynamoEventMessage{
-		{Quantity: 6},
-		{Quantity: 3},
+		{UserId: 11112, Quantity: 6},
+		{UserId: 11112, Quantity: 3},
 	}
 
-	var matchedOrders3 types.Messages
-
-	matchedOrders3 = []*types.DynamoEventMessage{
-		{Quantity: 6},
-		{Quantity: 3},
-	}
+	//var matchedOrders3 types.Messages
+	//
+	//matchedOrders3 = []*types.DynamoEventMessage{
+	//	{UserId: 11112, Quantity: 6},
+	//	{UserId: 11112, Quantity: 3},
+	//}
 
 	type fields struct {
 		repository *mockRepository.OperationRepository
@@ -100,21 +102,25 @@ func TestMatch_Match(t *testing.T) {
 					Times(1)
 
 				repository.
-					On("Update", mock.Anything, matchedOrders1, buyOperation, types.Finished).
+					On("UpdateAll", mock.Anything, matchedOrders1, buyOperation, types.Finished).
 					Return(nil).
 					Times(1)
 
 				queue.
 					On("Send", mock.Anything, []*types.Order{{
+						UserId:        11113,
 						Quantity:      10,
 						OperationType: types.Buy,
 					}, {
+						UserId:        11112,
 						Quantity:      5,
 						OperationType: types.Sale,
 					}, {
+						UserId:        11112,
 						Quantity:      2,
 						OperationType: types.Sale,
 					}, {
+						UserId:        11112,
 						Quantity:      3,
 						OperationType: types.Sale,
 					}}).
@@ -139,15 +145,17 @@ func TestMatch_Match(t *testing.T) {
 					Times(1)
 
 				repository.
-					On("Update", mock.Anything, matchedOrders2, buyOperation, types.Finished).
+					On("UpdateAll", mock.Anything, matchedOrders2, buyOperation, types.Finished).
 					Return(nil).
 					Times(1)
 
 				queue.
 					On("Send", mock.Anything, []*types.Order{{
+						UserId:        11113,
 						Quantity:      10,
 						OperationType: types.Buy,
 					}, {
+						UserId:        11112,
 						Quantity:      10,
 						OperationType: types.Sale,
 					}}).
@@ -172,7 +180,7 @@ func TestMatch_Match(t *testing.T) {
 					Times(1)
 
 				repository.
-					On("Update", mock.Anything, matchedOrders3, buyOperation, types.InTrade).
+					On("Update", mock.Anything, buyOperation, types.InTrade).
 					Return(nil).
 					Times(1)
 			},
