@@ -59,16 +59,15 @@ func TestMatch_Match(t *testing.T) {
 	var orders3 types.Messages
 
 	orders3 = []*types.DynamoEventMessage{
-		{UserId: 11112, Quantity: 6},
-		{UserId: 11112, Quantity: 3},
+		{UserId: 11112, Quantity: 10},
 	}
 
-	//var matchedOrders3 types.Messages
-	//
-	//matchedOrders3 = []*types.DynamoEventMessage{
-	//	{UserId: 11112, Quantity: 6},
-	//	{UserId: 11112, Quantity: 3},
-	//}
+	var matchedOrders3 types.Messages
+
+	matchedOrders3 = []*types.DynamoEventMessage{
+		{UserId: 11112, Quantity: 10},
+		{UserId: 11112, Quantity: 10},
+	}
 
 	type fields struct {
 		repository *mockRepository.OperationRepository
@@ -146,6 +145,40 @@ func TestMatch_Match(t *testing.T) {
 
 				repository.
 					On("UpdateAll", mock.Anything, matchedOrders2, buyOperation, types.Finished).
+					Return(nil).
+					Times(1)
+
+				queue.
+					On("Send", mock.Anything, []*types.Order{{
+						UserId:        11113,
+						Quantity:      10,
+						OperationType: types.Buy,
+					}, {
+						UserId:        11112,
+						Quantity:      10,
+						OperationType: types.Sale,
+					}}).
+					Return(nil).
+					Times(1)
+			},
+		}, {
+			name: "Should Match orders considering full match with more than one possibility",
+			fields: fields{
+				repository: new(mockRepository.OperationRepository),
+				queue:      new(mocksQueue.Queue),
+			},
+			args: args{
+				ctx:       context.TODO(),
+				operation: buyOperation,
+			},
+			mock: func(repository *mockRepository.OperationRepository, queue *mocksQueue.Queue) {
+				repository.
+					On("FindAll", mock.Anything, types.Sale, types.InTrade).
+					Return(orders3, nil).
+					Times(1)
+
+				repository.
+					On("UpdateAll", mock.Anything, matchedOrders3, buyOperation, types.Finished).
 					Return(nil).
 					Times(1)
 
