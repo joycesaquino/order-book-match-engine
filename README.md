@@ -2,12 +2,6 @@
 
 Lambda function responsible to match buy and sale orders
 
-**Note !**
-
-_I had problems uploading the localstack with dynamo stream.
-The stack standing on the lambda is not being invoked by the stream, 
-so this lambda must be tested with an integration test that is in the file mains_test.go_
-
 How to test ?
 
 
